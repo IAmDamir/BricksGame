@@ -1,0 +1,28 @@
+#version 330 core
+in vec3 position; 
+in vec3 normal;
+in vec2 texCoord0;
+
+uniform mat4 P;
+uniform mat4 V;
+uniform mat4 M;
+uniform vec4 lightPos0;
+uniform vec4 lightPos1;
+
+out vec4 vN; 
+out vec4 vV; 
+out vec4 vL0;
+out vec4 vL1; 
+out vec2 iTexCoord0;
+
+void main()
+{
+    gl_Position=P*V*M*vec4(position,1.0f);
+
+    vN=normalize(V*M*vec4(normal,0.0f)); 
+	vL0=normalize(V*lightPos0-V*M*vec4(position,1.0f));
+    vL1=normalize(V*lightPos1-V*M*vec4(position,1.0f)); 
+	vV=normalize(vec4(0,0,0,1)-V*M*vec4(position,1.0f));
+    
+    iTexCoord0=texCoord0;
+}
