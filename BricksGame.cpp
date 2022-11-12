@@ -80,18 +80,13 @@ GLuint FramebufferName;
 // We would expect width and height to be 1024 and 768
 int windowWidth = 1024;
 int windowHeight = 768;
-GLuint programID;
 GLuint Texture;
 GLuint TextureID;
 GLuint texID;
 std::vector<GameObject> objects;
 GLuint depthTexture;
-GLuint MatrixID;
-GLuint ViewMatrixID;
-GLuint ModelMatrixID;
 GLuint DepthBiasID;
 GLuint ShadowMapID;
-GLuint lightInvDirID;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
@@ -213,31 +208,6 @@ int main()
 	glfwSetKeyCallback(window, key_callback);
 	initOpenGLProgram();
 
-	static const GLfloat g_quad_vertex_buffer_data[] = {
-		-1.0f, -1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f,
-		-1.0f,  1.0f, 0.0f,
-		-1.0f,  1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f,
-		 1.0f,  1.0f, 0.0f,
-	};
-
-	GLuint quad_vertexbuffer;
-	glGenBuffers(1, &quad_vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
-
-	programID = LoadShaders("shaders//ShadowMapping.vertexshader", "shaders//ShadowMapping.fragmentshader");
-	texID = glGetUniformLocation(programID, "myTextureSampler");
-
-	MatrixID = glGetUniformLocation(programID, "MVP");
-	ViewMatrixID = glGetUniformLocation(programID, "V");
-	ModelMatrixID = glGetUniformLocation(programID, "M");
-	DepthBiasID = glGetUniformLocation(programID, "DepthBiasMVP");
-	ShadowMapID = glGetUniformLocation(programID, "shadowMap");
-
-	lightInvDirID = glGetUniformLocation(programID, "LightInvDirection_worldspace");
-
 	while (!glfwWindowShouldClose(window))
 	{
 		switch (state)
@@ -292,7 +262,7 @@ void initOpenGLProgram()
 
 	Texture = loadDDS("res//uvmap.DDS");
 
-	GLuint FramebufferName = 0;
+	FramebufferName = 0;
 	glGenFramebuffers(1, &FramebufferName);
 	glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
 
@@ -312,7 +282,8 @@ void initOpenGLProgram()
 	glDrawBuffer(GL_NONE);
 
 	shaderProgram = new ShaderProgram(vshader, NULL, fshader);
-
+	DepthBiasID = glGetUniformLocation(shaderProgram->shaderProgram, "DepthBiasMVP");
+	ShadowMapID = glGetUniformLocation(shaderProgram->shaderProgram, "shadowMap");
 	GameObjectVertices* sphere = new GameObjectVertices(sphere_obj);
 	GameObjectVertices* cube = new GameObjectVertices(cube_obj);
 
@@ -432,114 +403,18 @@ void runGame(GLFWwindow* window)
 
 	glm::mat4 depthBiasMVP = biasMatrix * depthMVP;
 
-	for (auto& obj : objects)
-	{
-		//vertices
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, obj.bufVertices);
-		glVertexAttribPointer(
-			0,
-			3,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			(void*)0
-		);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.bufIndeces);
-
-		glDrawElements(
-			GL_TRIANGLES,
-			obj.indices.size(),
-			GL_UNSIGNED_SHORT,
-			(void*)0
-		);
-	}
-
-	glDisableVertexAttribArray(0);
-
-	// Render to the screen
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, windowWidth, windowHeight);
-
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glUseProgram(programID);
-
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
-	glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &ViewMatrix[0][0]);
+	clearBuffer();
+	glUseProgram(shaderProgram->shaderProgram);
 	glUniformMatrix4fv(DepthBiasID, 1, GL_FALSE, &depthBiasMVP[0][0]);
 
-	glUniform3f(lightInvDirID, lightInvDir.x, lightInvDir.y, lightInvDir.z);
-
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, Texture);
 
-	glUniform1i(TextureID, 0);
+	glUniform1i(TextureID, 2);
 
-	glActiveTexture(GL_TEXTURE1);
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
-	glUniform1i(ShadowMapID, 1);
-
-	for (auto& obj : objects)
-	{
-		//vertices
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, obj.bufVertices);
-		glVertexAttribPointer(
-			0,
-			3,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			(void*)0
-		);
-
-		//UVs
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, obj.bufTexCoords);
-		glVertexAttribPointer(
-			1,
-			2,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			(void*)0
-		);
-
-		//normals
-		glEnableVertexAttribArray(2);
-		glBindBuffer(GL_ARRAY_BUFFER, obj.bufNormals);
-		glVertexAttribPointer(
-			2,
-			3,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			(void*)0
-		);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obj.bufIndeces);
-
-		glDrawElements(
-			GL_TRIANGLES,
-			obj.indices.size(),
-			GL_UNSIGNED_SHORT,
-			(void*)0
-		);
-	}
-
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(2);
-
-	glDisableVertexAttribArray(0);
-
-	clearBuffer();
+	glUniform1i(ShadowMapID, 3);
 
 	float padDeltaX = glfwGetTime() * padVelocityX;
 	if (pause)
@@ -557,6 +432,8 @@ void runGame(GLFWwindow* window)
 			ballDeltaY[i] = 0.0f;
 		}
 	}
+
+	clearBuffer();
 
 	glfwSetTime(0);
 
@@ -740,6 +617,10 @@ void freeOpenGLProgram()
 	{
 		delete balls[i];
 	}
+	glDeleteProgram(depthProgramID);
+	glDeleteTextures(1, &Texture);
+	glDeleteFramebuffers(1, &FramebufferName);
+	glDeleteTextures(1, &depthTexture);
 }
 
 #define FOURCC_DXT1 0x31545844 // Equivalent to "DXT1" in ASCII
