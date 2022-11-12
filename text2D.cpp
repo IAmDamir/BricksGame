@@ -7,18 +7,14 @@ ShaderProgram* Text2DShader;
 unsigned int Text2DUniformID;
 
 void initText2D(char* texturePath) {
-	// Initialize texture
 	Text2DTextureID = readTexture(texturePath);
 
-	// Initialize VBO
 	glGenBuffers(1, &Text2DVertexBufferID);
 	glGenBuffers(1, &Text2DUVBufferID);
 
-	// Initialize Shader
 	char vshader[] = "shaders//textvshader.txt", fshader[] = "shaders//textfshader.txt";
 	Text2DShader = new ShaderProgram(vshader, NULL, fshader);
 
-	// Initialize uniforms' IDs
 	char sampler[] = "myTextureSampler";
 	Text2DUniformID = Text2DShader->getUniformLocation(sampler);
 }
@@ -26,7 +22,6 @@ void initText2D(char* texturePath) {
 void printText2D(const char* text, int x, int y, int size) {
 	unsigned int length = strlen(text);
 
-	// Fill buffers
 	std::vector<glm::vec2> vertices;
 	std::vector<glm::vec2> UVs;
 	for (unsigned int i = 0; i < length; i++) {
@@ -90,14 +85,10 @@ void printText2D(const char* text, int x, int y, int size) {
 }
 
 void cleanupText2D() {
-	// Delete buffers
 	glDeleteBuffers(1, &Text2DVertexBufferID);
 	glDeleteBuffers(1, &Text2DUVBufferID);
 
-	// Delete texture
 	glDeleteTextures(1, &Text2DTextureID);
 
-	// Delete shader
-	//glDeleteProgram(Text2DShaderID);
 	delete Text2DShader;
 }

@@ -1,6 +1,6 @@
 #include "gameobject.h"
 
-GameObject::GameObject(GameObjectVertices* gameObjectVertices, GLuint texture0, GLuint texture1,
+GameObject::GameObject(GameObjectVertices* gameObjectVertices, GLuint texture0, GLuint texture1, GLuint texture2,
 	glm::vec3 position, glm::vec3 scale, glm::mat4 view, glm::mat4 perspective, ShaderProgram* shaderProgram)
 {
 	show = true;
@@ -28,6 +28,7 @@ GameObject::GameObject(GameObjectVertices* gameObjectVertices, GLuint texture0, 
 
 	GameObject::texture0 = texture0;
 	GameObject::texture1 = texture1;
+	GameObject::texture2 = texture2;
 
 	CalculateEdges();
 }
@@ -84,7 +85,8 @@ void GameObject::DrawObject()
 	glUniformMatrix4fv(shaderProgram->getUniformLocation(P), 1, false, glm::value_ptr(perspective));
 	glUniformMatrix4fv(shaderProgram->getUniformLocation(V), 1, false, glm::value_ptr(view));
 	glUniformMatrix4fv(shaderProgram->getUniformLocation(M), 1, false, glm::value_ptr(model));
-	//glUniformMatrix4fv(shaderProgram->getUniformLocation(lightPos0), 1, false, glm::value_ptr(lightpos));
+	//glUniformMatrix4fv(shaderProgram->getUniformLocation(lightPos0), 1, false, glm::value_ptr(lightpos0));
+	//glUniformMatrix4fv(shaderProgram->getUniformLocation(lightPos1), 1, false, glm::value_ptr(lightpos1));
 	glUniform4f(shaderProgram->getUniformLocation(lightPos0), 0.0f, 12.0f, -5.0f, 1);
 	glUniform4f(shaderProgram->getUniformLocation(lightPos1), 0.0f, -26.0f, -3.0f, 1);
 	glUniform1i(shaderProgram->getUniformLocation(textureMap0), 0);
@@ -115,14 +117,19 @@ void GameObject::MoveVertical(float delta)
 	upperEdgeY += delta;
 	bottomEdgeY += delta;
 }
-/*
+
 glm::vec3 GameObject::GetPosition()
 {
 	return position;
 }
 
-void GameObject::SetLigthPosition(glm::vec3 lightPos)
+void GameObject::SetLigthPosition0(glm::vec3 lightPos)
 {
-	this->lightpos = glm::mat4(1.0f);
-	this->lightpos = glm::translate(lightpos, lightPos);
-}*/
+	this->lightpos0 = glm::mat4(1.0f);
+	this->lightpos0 = glm::translate(lightpos0, lightPos);
+}
+void GameObject::SetLigthPosition1(glm::vec3 lightPos)
+{
+	this->lightpos1 = glm::mat4(1.0f);
+	this->lightpos1 = glm::translate(lightpos1, lightPos);
+}

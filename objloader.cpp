@@ -9,16 +9,6 @@
 
 #include "objloader.h"
 
-// Very, VERY simple OBJ loader.
-// Here is a short list of features a real function would provide :
-// - Binary files. Reading a model should be just a few memcpy's away, not parsing a file at runtime. In short : OBJ is not very great.
-// - Animations & bones (includes bones weights)
-// - Multiple UVs
-// - All attributes should be optional, not "forced"
-// - More stable. Change a line in the OBJ file and it crashes.
-// - More secure. Change another line and you can inject code.
-// - Loading from memory, stream, etc
-
 bool loadOBJ(
 	const char* path,
 	std::vector<glm::vec3>& out_vertices,
@@ -49,7 +39,7 @@ bool loadOBJ(
 				glm::vec2 uv;
 
 				file >> uv.x >> uv.y;
-				uv.y = -uv.y; // Invert V coordinate since we will only use DDS texture, which are inverted. Remove if you want to use TGA or BMP loaders.
+				uv.y = -uv.y;
 				temp_uvs.push_back(uv);
 			}
 			else
@@ -90,19 +80,15 @@ bool loadOBJ(
 		file >> flag;
 	} while (!file.fail());
 
-	// For each vertex of each triangle
 	for (unsigned int i = 0; i < vertexIndices.size(); i++) {
-		// Get the indices of its attributes
 		unsigned int vertexIndex = vertexIndices[i];
 		unsigned int uvIndex = uvIndices[i];
 		unsigned int normalIndex = normalIndices[i];
 
-		// Get the attributes thanks to the index
 		glm::vec3 vertex = temp_vertices[vertexIndex - 1];
 		glm::vec2 uv = temp_uvs[uvIndex - 1];
 		glm::vec3 normal = temp_normals[normalIndex - 1];
 
-		// Put the attributes in buffers
 		out_vertices.push_back(vertex);
 		out_uvs.push_back(uv);
 		out_normals.push_back(normal);
@@ -111,7 +97,7 @@ bool loadOBJ(
 	return true;
 }
 
-#ifdef USE_ASSIMP // don't use this #define, it's only for me (it AssImp fails to compile on your machine, at least all the other tutorials still work)
+#ifdef USE_ASSIMP
 
 // Include AssImp
 #include <assimp/Importer.hpp>      // C++ importer interface

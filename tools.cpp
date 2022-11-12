@@ -4,16 +4,12 @@ GLuint readTexture(char* filename) {
 	GLuint tex;
 	glActiveTexture(GL_TEXTURE0);
 
-	//Wczytanie do pamięci komputera
-	std::vector<unsigned char> image;   //Alokuj wektor do wczytania obrazka
-	unsigned width, height;   //Zmienne do których wczytamy wymiary obrazka
-	//Wczytaj obrazek
+	std::vector<unsigned char> image;
+	unsigned width, height;
 	unsigned error = lodepng::decode(image, width, height, filename);
 
-	//Import do pamięci karty graficznej
-	glGenTextures(1, &tex); //Zainicjuj jeden uchwyt
-	glBindTexture(GL_TEXTURE_2D, tex); //Uaktywnij uchwyt
-	//Wczytaj obrazek do pamięci KG skojarzonej z uchwytem
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,
 		GL_RGBA, GL_UNSIGNED_BYTE, (unsigned char*)image.data());
 

@@ -21,9 +21,11 @@ protected:
 	glm::mat4 model;
 	glm::mat4 view;
 	glm::mat4 perspective;
-	glm::mat4 lightpos;
+	glm::mat4 lightpos0;
+	glm::mat4 lightpos1;
 	GLuint texture0;
 	GLuint texture1;
+	GLuint texture2;
 	GLuint vao;
 
 	void CalculateEdges();
@@ -44,15 +46,15 @@ public:
 	float bottomEdgeY;
 	bool show;
 
-	GameObject(GameObjectVertices* gameObjectVertices, GLuint texture0, GLuint texture1,
+	GameObject(GameObjectVertices* gameObjectVertices, GLuint texture0, GLuint texture1, GLuint texture2,
 		glm::vec3 position, glm::vec3 scale, glm::mat4 view, glm::mat4 perspective, ShaderProgram* shaderProgram);
 	void DrawObject();
 	void MoveHorizontal(float delta);
 	void MoveVertical(float delta);
-	/*
+
 	glm::vec3 GetPosition();
-	void SetLigthPosition(glm::vec3 lightpos);
-	*/
+	void SetLigthPosition0(glm::vec3 lightpos);
+	void SetLigthPosition1(glm::vec3 lightpos);
 };
 
 #endif
